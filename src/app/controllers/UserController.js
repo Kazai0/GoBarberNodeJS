@@ -1,8 +1,19 @@
-import { password } from "../../config/database";
+import * as Yup from "yup";
+
 import User from "../models/User";
 
 class UserController {
   async store(req, res) {
+    const schema = Yup.object().shape({
+      name: Yup.string().required(),
+      email: Yup.string().email().required(),
+      password: Yup.string().required().min(6),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: "validation fails" });
+    }
+
     // criação de uma variavel que busca no banco de dados
     //se existe já um email com o email da requisição com o req.body
     const userExist = await User.findOne({
@@ -26,6 +37,24 @@ class UserController {
   }
 
   async update(req, res) {
+    const schema = Yup.object().shape({
+      name: Yup.string(),
+      email: Yup.string().email(),
+      oldPassword: Yup.string().min(6),
+      password: Yup.string()
+        .min(6)
+        .when("oldPassword", (oldPassword, field) =>
+          oldPassword ? field.required() : field
+        ),
+      confirmPassword: Yup.string().when("password", (password, field) =>
+        password ? field.required().oneOf([Yup.ref("password")]) : field
+      ),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: "validation fails" });
+    }
+
     // estou pegando do objeto json do body 'email' e 'oldPassword'
     const { email, oldPassword } = req.body;
 
