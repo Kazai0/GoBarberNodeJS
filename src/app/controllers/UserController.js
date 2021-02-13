@@ -1,3 +1,4 @@
+import { password } from "../../config/database";
 import User from "../models/User";
 
 class UserController {
@@ -22,6 +23,32 @@ class UserController {
       email,
       provider,
     });
+  }
+
+  async update(req, res) {
+    // estou pegando do objeto json do body 'email' e 'oldPassword'
+    const { email, oldPassword } = req.body;
+
+    // Esse user id pega o id através do token la da funçao do auth
+    const user = await User.findByPk(req.userId);
+
+    if (email && email != user.email) {
+      const userExist = await User.findOne({
+        where: { email },
+      });
+
+      if (userExist) {
+        return res.status(400).json({ error: "User already exist." });
+      }
+    }
+
+    if (oldPassword && !(await user.checkPassword(oldPassword))) {
+      return res.status(401).json({ error: "password does not match" });
+    }
+
+    const { id, name, provider } = await user.update(req.body);
+
+    return res.json({ id, name, email, provider });
   }
 }
 
