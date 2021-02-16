@@ -6,6 +6,7 @@ import UserController from "./app/controllers/UserController";
 import SessionController from "./app/controllers/SessionController";
 import User from "./app/models/User";
 import authMiddlawares from "./app/middlewares/auth";
+import FileController from "./app/controllers/FileController";
 
 const routes = new Router();
 const upload = multer(multerConfig);
@@ -17,8 +18,6 @@ routes.use(authMiddlawares);
 
 routes.post("/sessions", SessionController.store);
 
-routes.post("/files", upload.single("file"), (req, res) => {
-  return res.json({ ok: true });
-});
+routes.post("/files", upload.single("file"), FileController.store);
 
 export default routes;
