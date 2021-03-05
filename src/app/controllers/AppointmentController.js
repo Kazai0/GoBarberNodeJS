@@ -52,7 +52,7 @@ class AppointmentController {
     // Check if provider_id is a provider
     //
 
-    console.log(provider_id);
+    // console.log(provider_id);
 
     const isProvider = await User.findOne({
       where: { id: provider_id, provider: true },
@@ -81,6 +81,14 @@ class AppointmentController {
       return res
         .status(400)
         .json({ error: "appointment date is not available" });
+    }
+
+    const checkUser = await User.findOne({
+      where: { id: req.userId },
+    });
+
+    if (checkUser.id == provider_id) {
+      return res.status(400).json({ error: "provider cannot be use" });
     }
 
     const appoitment = await Appointment.create({
