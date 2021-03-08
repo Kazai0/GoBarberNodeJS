@@ -1,5 +1,5 @@
 import Appointment from "../models/Appointment";
-import { startOfHour, parseISO, isBefore, format } from "date-fns";
+import { startOfHour, parseISO, isBefore, format, subHours } from "date-fns";
 import pt from "date-fns/locale/pt";
 import * as Yup from "yup";
 import User from "../models/User";
@@ -111,6 +111,36 @@ class AppointmentController {
 
     return res.json(appoitment);
     // return res.json({ message: "Deus é bom" });
+  }
+
+  async delete(req, res) {
+    const appoitment = await Appointment.findByPk(req.params.id);
+
+    console.log(appoitment.user_id);
+    console.log(req.userId);
+
+    if (appoitment.user_id != req.userID) {
+      console.log("Deus");
+    }
+    if (appoitment.user_id != req.userId) {
+      return res.status(401).json({
+        error: "you don't have permission to cancel this appointments",
+      });
+    }
+
+    const dateWithSub = subHours(appoitment.date, 2);
+
+    if (isBefore(dateWithSub, new Date())) {
+      return res.status(401).json({
+        error: "you can only cancel appointements 2 hours in advance",
+      });
+    }
+
+    appoitment.canceled_at = new Date();
+
+    await appoitment.save();
+
+    return res.json(appoitment);
   }
 }
 
